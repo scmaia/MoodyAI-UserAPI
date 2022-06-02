@@ -28,18 +28,14 @@ def register(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def one_user(request, pk):
+def one_user(request):
   try:
-    user_instance = UserModel.objects.get(pk=pk)
+    user_instance = UserModel.objects.get(pk=request.user.id)
   except UserModel.DoesNotExist:
     return Response(status=status.HTTP_404_NOT_FOUND)
   
-  if request.user.id == int(pk):
-    serializer = UserSerializer(user_instance, context={'request': request})
-    return Response(serializer.data)
-
-  else:
-    return Response(status=status.HTTP_403_FORBIDDEN)
+  serializer = UserSerializer(user_instance, context={'request': request})
+  return Response(serializer.data)
 
 
 # @api_view(['GET'])
