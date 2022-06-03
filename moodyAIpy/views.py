@@ -1,12 +1,11 @@
+import json
 from django.http import HttpResponse
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-
-# from .models import User, AIResponse
+from moodyAIpy import utils
 from .models import AIResponse
 from .serializers import *
 
@@ -38,41 +37,46 @@ def one_user(request):
   return Response(serializer.data)
 
 
-# @api_view(['GET'])
-# def one_user(request, pk):
-#   try:
-#     user_instance = User.objects.get(pk=pk)
-#   except User.DoesNotExist:
-#     return Response(status=status.HTTP_404_NOT_FOUND)
-  
-#   serializer = UserSerializer(user_instance, context={'request': request})
-  
-#   return Response(serializer.data)
-
-
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def responses_list(request, fk):
     try:
-        data = AIResponse.objects.filter(user = fk)
+        list = AIResponse.objects.filter(user = fk).order_by('-created_at')
     except AIResponse.DoesNotExist:
-        data = None
+        list = None
 
     if request.user.id != int(fk):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif request.method == 'GET':
-        serializer = AIResponseSerializer(data, context={'request': request}, many=True)
-
+        serializer = AIResponseSerializer(list, context={'request': request}, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = AIResponseSerializer(data=request.data)
+        try:
+          api_response = utils.openAI_request(request.data['prompt'], request.data['mood'], fk)
+        except:
+          return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = AIResponseSerializer(data=api_response)
         if serializer.is_valid():
             serializer.save()
-            return Response(status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def anonymous_response(request):
+    try:
+      api_response = utils.openAI_request(request.data['prompt'], request.data['mood'], "1")
+    except:
+      return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    serializer = AIResponseSerializer(data=api_response)
+    if serializer.is_valid():
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
@@ -81,12 +85,12 @@ def one_response(request, pk):
         response_instance = AIResponse.objects.get(pk=pk)
     except AIResponse.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.user.id != int(response_instance.user):
+    if request.user.id != response_instance.user.id:
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif request.method == 'PUT':
-        serializer = AIResponseSerializer(response_instance, data=request.data,context={'request': request})
+        print(request.data)
+        serializer = AIResponseSerializer(response_instance, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -95,3 +99,4 @@ def one_response(request, pk):
     elif request.method == 'DELETE':
         response_instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+  

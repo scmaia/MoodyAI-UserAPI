@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-
+from decouple import config
 from moodyAIpy.apps import MoodyaipyConfig
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -119,6 +119,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+OPENAI_KEY = config('OPENAI_KEY', default='')
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -148,7 +149,4 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ]
 }

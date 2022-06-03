@@ -9,12 +9,13 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path('auth/', obtain_auth_token, name='api_token_auth'),
-    path('auth/signup', views.register),
+    path('auth/signup/', views.register),
 
     # re_path(r'^api/users/([0-9])$', views.one_user),
     re_path(r'^api/users/$', views.one_user),
     re_path(r'^api/users/([0-9])/responses/$', views.responses_list),
-    re_path(r'^api/responses/([0-9])$', views.one_response),
+    re_path(r'^api/users/anonymous/responses/$', views.anonymous_response),
+    re_path(r'^api/responses/([0-9])/$', views.one_response),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
