@@ -63,12 +63,6 @@ MIDDLEWARE = [
 ALLOWED_HOSTS=['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
-# ALLOWED_HOSTS=['http://localhost:3000']
-# CORS_ORIGIN_ALLOW_ALL = False
-# CORS_ORIGIN_WHITELIST = (
-#     'http://localhost:3000',
-# )
-
 ROOT_URLCONF = 'moodyAI_django.urls'
 
 TEMPLATES = [
