@@ -89,8 +89,7 @@ def one_response(request, pk):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif request.method == 'PUT':
-        print(request.data)
-        serializer = AIResponseSerializer(response_instance, data=request.data, context={'request': request})
+        serializer = AIResponseSerializer(response_instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
